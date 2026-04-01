@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Rooms - HostelHub{% endblock %}
+
+{% block content %}
+<div x-data="{ 
+    openModal: false, 
+    filter: 'All',
+    init() {
+        this.filter = 'All';
+    }
+}">
+    <!-- Dashboard Greeting / Header Section -->
+    <section class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h2 class="text-3xl font-headline font-extrabold text-slate-900 dark:text-white tracking-tight">Room Inventory</h2>
+            <p class="text-slate-500 dark:text-slate-400 mt-1 font-body">Manage living quarters and maintenance status across all wings.</p>
+        </div>
+        <div class="flex gap-3">
+            <button class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <span class="material-symbols-outlined text-lg">filter_list</span>
+                Advanced Filters
+            </button>
+            <button @click="openModal = true" class="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm shadow-md hover:bg-blue-700 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-lg">add</span>
+                Add Room
+            </button>
+        </div>
+    </section>
+
+    <!-- Tab Filtering System -->
+    <nav class="flex gap-2 mb-8 p-1 bg-slate-100 dark:bg-slate-800/50 w-fit rounded-2xl overflow-x-auto">
+        <button @click="filter = 'All'" :class="filter === 'All' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50'" class="px-6 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap">All Rooms</button>
+        <button @click="filter = 'Occupied'" :class="filter === 'Occupied' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50'" class="px-6 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">Occupied</button>
+        <button @click="filter = 'Available'" :class="filter === 'Available' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50'" class="px-6 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">Available</button>
+        <button @click="filter = 'Maintenance'" :class="filter === 'Maintenance' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700/50'" class="px-6 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">Maintenance</button>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 rounded-xl {% if category == 'success' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% else %}bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400{% endif %} text-sm font-medium">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Room Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for room in rooms %}
+        <div x-show="filter === 'All' || 
+                    (filter === 'Occupied' && {{ room.occupants|length }} > 0) || 
+                    (filter === 'Available' && {{ room.occupants|length }} < {{ room.capacity }}) ||
+                    (filter === 'Maintenance' && false)" 
+             class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 relative overflow-hidden group border border-transparent dark:border-slate-700">
+            <div class="absolute top-0 left-0 w-1 h-full {% if room.type == 'dorm' %}bg-purple-600{% elif room.type == 'single' %}bg-blue-600{% else %}bg-green-600{% endif %}"></div>
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <span class="text-[10px] font-label font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase block mb-1">FLOOR {{ room.floor }} • {{ room.type | upper }}</span>
+                    <h3 class="text-2xl font-headline font-bold text-slate-900 dark:text-white">{{ room.roomNumber }}</h3>
+                </div>
+                <span class="{% if room.occupants|length >= room.capacity %}bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400{% else %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400{% endif %} px-3 py-1 rounded-full text-xs font-bold transition-colors">
+                    {{ room.occupants|length }}/{{ room.capacity }} {{ 'Full' if room.occupants|length >= room.capacity else 'Available' }}
+                </span>
+            </div>
+            
+            <div class="flex items-center gap-3 mb-6 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg min-h-[56px] transition-colors">
+                {% if room.occupants %}
+                    <div class="flex -space-x-2">
+                        {% for occupant in room.occupants[:3] %}
+                        <div class="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 bg-blue-200 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex justify-center items-center text-xs font-bold transition-all">{{ occupant.name[0] | upper }}</div>
+                        {% endfor %}
+                    </div>
+                    <p class="text-sm font-medium text-slate-800 dark:text-slate-200 line-clamp-1">
+                        {% for occupant in room.occupants[:2] %}{{ occupant.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+                        {% if room.occupants|length > 2 %} & {{ room.occupants|length - 2 }} more{% endif %}
+                    </p>
+                {% else %}
+                    <p class="text-xs text-slate-400 dark:text-slate-500 italic">No occupants yet</p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700 transition-colors">
+                <div class="flex gap-2">
+                    <a href="{{ url_for('page.rooms') }}" class="text-xs font-bold text-blue-600 dark:text-blue-400 px-3 py-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">Details</a>
+                    <p class="text-xs font-bold text-slate-900 dark:text-slate-100">${{ room.price }}</p>
+                </div>
+
+                <button class="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
+                    <span class="material-symbols-outlined text-xl">more_vert</span>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Add Room Button Card -->
+        <button @click="openModal = true" class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-5 flex flex-col items-center justify-center gap-4 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all group min-h-[220px]">
+            <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                <span class="material-symbols-outlined text-2xl">add_home</span>
+            </div>
+            <div class="text-center">
+                <p class="font-headline font-bold text-slate-800 dark:text-slate-200 transition-colors">Add New Room</p>
+                <p class="text-xs text-slate-500 dark:text-slate-500 mt-1 transition-colors">Configure layout & capacity</p>
+            </div>
+        </button>
+    </div>
+
+    <!-- ADD ROOM MODAL -->
+    <div x-show="openModal" class="fixed inset-0 z-[100] overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="openModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-slate-900/75 backdrop-blur-sm" @click="openModal = false"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="openModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-slate-800 rounded-2xl shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-8 border border-transparent dark:border-slate-700">
+                <div class="mb-6 flex justify-between items-center">
+                    <h3 class="text-2xl font-headline font-bold text-slate-900 dark:text-white">Add New Room</h3>
+                    <button @click="openModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+
+                </div>
+
+                <form action="{{ url_for('page.add_room') }}" method="POST" class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Room Number</label>
+                            <input type="text" name="roomNumber" placeholder="302-B" required class="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"/>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Floor</label>
+                            <input type="number" name="floor" placeholder="3" required class="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"/>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Capacity</label>
+                            <input type="number" name="capacity" placeholder="2" required class="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"/>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Room Type</label>
+                            <select name="type" class="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all">
+                                <option value="single">Single</option>
+                                <option value="double" selected>Double</option>
+                                <option value="triple">Triple</option>
+                                <option value="dorm">Dorm</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Monthly Price ($)</label>
+                        <input type="number" step="0.01" name="price" placeholder="1200.00" required class="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"/>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="w-full h-12 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:scale-[0.98] transition-all">
+                            Create Room Entry
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

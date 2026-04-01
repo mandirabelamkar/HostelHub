@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Complaints - HostelHub{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div>
+        <h2 class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-headline">Complaints</h2>
+        <p class="text-slate-500 dark:text-slate-400 mt-1 font-body">Manage and monitor student grievances and maintenance requests.</p>
+    </div>
+    <div class="flex space-x-3">
+        <a href="{{ url_for('page.export_data', type='complaints') }}" class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl text-sm font-semibold transition-all hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95">
+            Export Report
+        </a>
+
+        <button class="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 transition-all active:scale-95">
+            New Ticket
+        </button>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="mb-6 p-4 rounded-xl {% if category == 'success' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% else %}bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400{% endif %} text-sm font-medium">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Dashboard Layout -->
+<div class="grid grid-cols-12 gap-8">
+    <!-- Left Column: Form & Analytics -->
+    <div class="col-span-12 lg:col-span-4 space-y-8">
+        <!-- Submit New Maintenance Ticket Form -->
+        <section class="bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-sm relative overflow-hidden text-slate-800 dark:text-slate-200 border border-transparent dark:border-slate-700 transition-all">
+            <div class="relative z-10">
+                <h3 class="text-xl font-bold mb-6 text-slate-900 dark:text-white flex items-center">
+                    <span class="material-symbols-outlined mr-2 text-blue-600 dark:text-blue-400">add_task</span>
+                    Submit Maintenance Ticket
+                </h3>
+                <form action="{{ url_for('page.add_complaint') }}" method="POST" class="space-y-5">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1">Category</label>
+                        <select name="category" required class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 font-medium dark:text-white transition-all">
+                            <option>Electrical</option>
+                            <option>Plumbing</option>
+                            <option>Carpentry</option>
+                            <option>Cleaning</option>
+                            <option>Internet/Network</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1">Room Number</label>
+                        <input type="text" name="roomNumber" placeholder="e.g. B-204" required class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"/>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1">Description</label>
+                        <textarea name="description" placeholder="Describe the issue in detail..." rows="4" required class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-[0.98]">
+                        Log Maintenance Request
+                    </button>
+                </form>
+            </div>
+        </section>
+        
+        <!-- Resolution Performance Card -->
+        <section class="bg-blue-600 text-white p-8 rounded-[2rem] shadow-xl flex flex-col justify-between h-56 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+            <div class="relative z-10">
+                <p class="text-[11px] font-bold uppercase tracking-widest opacity-80 mb-1">Performance Index</p>
+                <h3 class="text-2xl font-bold">Resolution Avg</h3>
+            </div>
+            <div class="relative z-10 mt-auto">
+                <div class="flex items-baseline space-x-2">
+                    <span class="text-5xl font-extrabold tracking-tighter">4.2</span>
+                    <span class="text-lg font-medium opacity-80">hours</span>
+                </div>
+            </div>
+            <div class="absolute bottom-6 right-8">
+                <span class="material-symbols-outlined text-6xl opacity-20">avg_time</span>
+            </div>
+        </section>
+    </div>
+
+    <!-- Right Column: List of Recent Tickets -->
+    <div class="col-span-12 lg:col-span-8">
+        <section class="bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden p-8 shadow-sm h-full border border-transparent dark:border-slate-700 transition-all">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Recent Tickets</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterComplaints('All')" id="filter-all" class="filter-btn px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap">All</button>
+                    <button onclick="filterComplaints('Pending')" id="filter-pending" class="filter-btn px-4 py-2 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors whitespace-nowrap">Pending</button>
+                    <button onclick="filterComplaints('Resolved')" id="filter-resolved" class="filter-btn px-4 py-2 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors whitespace-nowrap">Resolved</button>
+                    <button onclick="filterComplaints('Rejected')" id="filter-rejected" class="filter-btn px-4 py-2 bg-slate-100 dark:bg-slate-900 text-xs font-bold text-slate-500 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors whitespace-nowrap">Rejected</button>
+                </div>
+            </div>
+            <div class="space-y-4" id="complaint-list">
+                {% for complaint in complaints %}
+                <div class="complaint-card group flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6 p-6 hover:bg-slate-50 dark:hover:bg-slate-900/50 rounded-2xl transition-all duration-300 border border-transparent hover:border-slate-100 dark:hover:border-slate-700" 
+                     data-status="{{ complaint.status }}">
+                    <div class="w-12 h-12 {% if complaint.status == 'Resolved' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400{% elif complaint.status == 'Rejected' %}bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400{% else %}bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400{% endif %} rounded-xl flex items-center justify-center flex-shrink-0 relative transition-colors shadow-sm">
+                        <span class="material-symbols-outlined uppercase">
+                            {% if complaint.category == 'Electrical' %}electric_bolt
+                            {% elif complaint.category == 'Plumbing' %}plumbing
+                            {% elif complaint.category == 'Carpentry' %}construction
+                            {% elif complaint.category == 'Cleaning' %}cleaning_services
+                            {% else %}network_check{% endif %}
+                        </span>
+                        {% if complaint.is_escalated %}
+                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full border-2 border-white dark:border-slate-800" title="Escalated to Committee"></span>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 w-full">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 tracking-wider">#{{ complaint.id[:8] | upper }} • {{ complaint.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            <span class="px-3 py-1 {% if complaint.status == 'Resolved' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% elif complaint.status == 'Rejected' %}bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400{% else %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400{% endif %} text-[10px] font-extrabold rounded-full uppercase tracking-wider transition-colors">
+                                {{ complaint.status }}
+                            </span>
+                        </div>
+                        <h4 class="text-base font-bold text-slate-900 dark:text-white mb-2 flex flex-wrap items-center gap-2 transition-colors">
+                            {{ complaint.title }}
+                            {% if complaint.is_escalated %}
+                            <span class="px-2 py-0.5 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-400 text-[9px] font-bold rounded uppercase tracking-tighter shadow-sm animate-pulse">Escalated</span>
+                            {% endif %}
+                        </h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed transition-colors">{{ complaint.description }}</p>
+                        
+                        {% set can_resolve = false %}
+                        {% set can_reject = false %}
+                        {% if current_user.role == 'admin' and complaint.status == 'Pending' %}
+                            {% set can_resolve = true %}
+                            {% set can_reject = true %}
+                        {% elif current_user.is_committee and current_user.role != 'admin' and complaint.is_escalated %}
+                            {% if complaint.status == 'Pending' or complaint.status == 'Rejected' %}
+                                {% set can_resolve = true %}
+                            {% endif %}
+                            {% if complaint.status == 'Pending' %}
+                                {% set can_reject = true %}
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if can_resolve or can_reject %}
+                            <div class="mt-4 flex items-center space-x-3">
+                                {% if can_resolve %}
+                                <a href="{{ url_for('page.update_complaint_status', id=complaint.id, status='Resolved') }}" class="text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-all shadow-sm">Resolve</a>
+                                {% endif %}
+                                {% if can_reject %}
+                                <a href="{{ url_for('page.update_complaint_status', id=complaint.id, status='Rejected') }}" class="text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white px-3 py-1.5 rounded-lg hover:bg-rose-700 transition-all shadow-sm">Reject</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if not complaints %}
+                <div class="py-12 text-center">
+                    <span class="material-symbols-outlined text-4xl text-slate-200 dark:text-slate-700 mb-2">task_alt</span>
+                    <p class="text-slate-400 dark:text-slate-500 font-medium">No complaints found. All systems nominal!</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function filterComplaints(status) {
+        const cards = document.querySelectorAll('.complaint-card');
+        const buttons = document.querySelectorAll('.filter-btn');
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        // Update button styles
+        buttons.forEach(btn => {
+            btn.classList.remove('bg-blue-600', 'text-white');
+            btn.classList.add(isDark ? 'bg-slate-900' : 'bg-slate-100', isDark ? 'text-slate-400' : 'text-slate-500');
+        });
+        
+        const activeBtn = document.getElementById('filter-' + status.toLowerCase());
+        if (activeBtn) {
+            activeBtn.classList.remove(isDark ? 'bg-slate-900' : 'bg-slate-100', isDark ? 'text-slate-400' : 'text-slate-500');
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+        }
+
+        // Filter cards
+        cards.forEach(card => {
+            if (status === 'All' || card.getAttribute('data-status') === status) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

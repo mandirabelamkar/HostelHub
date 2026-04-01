@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Letters - HostelHub{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-10 flex justify-between items-end">
+    <div>
+        <h2 class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight font-headline">Letters</h2>
+        <p class="text-slate-500 dark:text-slate-400 mt-1 font-body">Submit formal letters to the administration and track their status.</p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="mb-6 p-4 rounded-xl {% if category == 'success' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% else %}bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400{% endif %} text-sm font-medium">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<!-- Stats Bar -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-5 flex items-center space-x-4 border border-transparent dark:border-slate-700 transition-all">
+        <div class="w-11 h-11 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-colors shadow-sm">
+            <span class="material-symbols-outlined">mail</span>
+        </div>
+        <div>
+            <p class="text-2xl font-extrabold text-slate-900 dark:text-white transition-colors">{{ total }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-500 font-medium transition-colors">Total</p>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-5 flex items-center space-x-4 border border-transparent dark:border-slate-700 transition-all">
+        <div class="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center transition-colors shadow-sm">
+            <span class="material-symbols-outlined">schedule</span>
+        </div>
+        <div>
+            <p class="text-2xl font-extrabold text-slate-900 dark:text-white transition-colors">{{ pending }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-500 font-medium transition-colors">Pending</p>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-5 flex items-center space-x-4 border border-transparent dark:border-slate-700 transition-all">
+        <div class="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center transition-colors shadow-sm">
+            <span class="material-symbols-outlined">check_circle</span>
+        </div>
+        <div>
+            <p class="text-2xl font-extrabold text-slate-900 dark:text-white transition-colors">{{ approved }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-500 font-medium transition-colors">Approved</p>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-5 flex items-center space-x-4 border border-transparent dark:border-slate-700 transition-all">
+        <div class="w-11 h-11 rounded-xl bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center transition-colors shadow-sm">
+            <span class="material-symbols-outlined">cancel</span>
+        </div>
+        <div>
+            <p class="text-2xl font-extrabold text-slate-900 dark:text-white transition-colors">{{ rejected }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-500 font-medium transition-colors">Rejected</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Layout -->
+<div class="grid grid-cols-12 gap-8">
+
+    <!-- Left Column: Submit Form -->
+    <div class="col-span-12 lg:col-span-4">
+        <section class="bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-sm border border-transparent dark:border-slate-700 transition-all">
+            <h3 class="text-xl font-bold mb-6 text-slate-900 dark:text-white flex items-center transition-colors">
+                <span class="material-symbols-outlined mr-2 text-blue-600 dark:text-blue-400">edit_note</span>
+                Compose Letter
+            </h3>
+            <form action="{{ url_for('page.submit_letter') }}" method="POST" class="space-y-5">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1 transition-colors">Subject</label>
+                    <input type="text" name="subject" placeholder="e.g. Request for Leave" required
+                           class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"/>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1 transition-colors">Category</label>
+                    <select name="category" required class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white font-medium transition-all">
+                        <option value="Leave Request">Leave Request</option>
+                        <option value="Clearance">Clearance</option>
+                        <option value="Bonafide">Bonafide</option>
+                        <option value="Room Change">Room Change</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 px-1 transition-colors">Letter Body</label>
+                    <textarea name="body" placeholder="Write your letter here..." rows="7" required
+                              class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all resize-none"></textarea>
+                </div>
+                <button type="submit"
+                        class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-[0.98]">
+                    Submit Letter
+                </button>
+            </form>
+        </section>
+    </div>
+
+    <!-- Right Column: Letters List -->
+    <div class="col-span-12 lg:col-span-8">
+        <section class="bg-white dark:bg-slate-800 rounded-[2rem] overflow-hidden p-8 shadow-sm h-full border border-transparent dark:border-slate-700 transition-all">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white transition-colors">
+                    {% if current_user.role == 'admin' %}All Submitted Letters{% else %}My Letters{% endif %}
+                </h3>
+                <span class="text-xs text-slate-400 dark:text-slate-500 font-semibold bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-full transition-colors">{{ total }} total</span>
+            </div>
+
+            <div class="space-y-4">
+                {% for letter in letters %}
+                <!-- Letter Card -->
+                <div class="border border-slate-100 dark:border-slate-700 rounded-2xl p-6 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 group">
+                    <div class="flex flex-col sm:flex-row items-start justify-between mb-3 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl transition-colors shadow-sm
+                                {% if letter.status == 'Approved' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400
+                                {% elif letter.status == 'Rejected' %}bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400
+                                {% else %}bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400{% endif %}
+                                flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-sm">
+                                    {% if letter.status == 'Approved' %}check_circle
+                                    {% elif letter.status == 'Rejected' %}cancel
+                                    {% else %}schedule{% endif %}
+                                </span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white text-base transition-colors">{{ letter.subject }}</h4>
+                                <div class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 flex flex-wrap items-center gap-2 transition-colors">
+                                    {% if current_user.role == 'admin' %}<span class="text-slate-600 dark:text-slate-300">{{ letter.student.name }}</span> · {% endif %}
+                                    <span class="bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-semibold transition-colors">{{ letter.category }}</span>
+                                    · {{ letter.created_at.strftime('%d %b %Y') }}
+                                </div>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 transition-colors
+                            {% if letter.status == 'Approved' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400
+                            {% elif letter.status == 'Rejected' %}bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400
+                            {% else %}bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400{% endif %}
+                            text-[10px] font-extrabold rounded-full uppercase tracking-wider whitespace-nowrap">
+                            {{ letter.status }}
+                        </span>
+                    </div>
+
+                    <!-- Body preview -->
+                    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 mb-3 sm:pl-13 transition-colors">{{ letter.body }}</p>
+
+                    <!-- Admin Remarks -->
+                    {% if letter.adminRemarks %}
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 dark:border-blue-500 rounded-r-xl px-4 py-3 mt-3 transition-colors">
+                        <p class="text-[11px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-wider mb-1">Admin Remarks</p>
+                        <p class="text-sm text-blue-800 dark:text-blue-200 transition-colors">{{ letter.adminRemarks }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Admin Action Buttons -->
+                    {% if current_user.role == 'admin' and letter.status == 'Pending' %}
+                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 transition-colors">
+                        <form action="{{ url_for('page.update_letter_status', id=letter.id, status='Approved') }}" method="POST" class="flex flex-wrap items-center gap-3">
+                            <input type="text" name="adminRemarks" placeholder="Optional remarks..." class="bg-slate-50 dark:bg-slate-900 border-none rounded-lg py-2 px-3 text-xs flex-grow sm:max-w-xs focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"/>
+                            <div class="flex items-center gap-2">
+                                <button type="submit"
+                                        class="text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-all shadow-sm">
+                                    Approve
+                                </button>
+                                <button type="submit" formaction="{{ url_for('page.update_letter_status', id=letter.id, status='Rejected') }}"
+                                        class="text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-700 transition-all shadow-sm">
+                                    Reject
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if not letters %}
+                <div class="py-16 text-center">
+                    <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-700 block mb-3 transition-colors">mark_email_unread</span>
+                    <p class="text-slate-400 dark:text-slate-500 font-semibold transition-colors">No letters yet.</p>
+                    <p class="text-xs text-slate-300 dark:text-slate-600 mt-1 transition-colors">Use the form to compose and submit your first letter.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Notice Board - HostelHub{% endblock %}
+
+{% block content %}
+<div x-data="{ openModal: false }">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div class="space-y-1">
+            <h2 class="text-4xl font-headline font-extrabold text-slate-900 dark:text-white tracking-tight">Notice Board</h2>
+            <p class="text-slate-500 dark:text-slate-400 font-medium opacity-70">Broadcast announcements and important updates to all residents.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">filter_list</span>
+                <span>Filter</span>
+            </button>
+            {% if current_user.role == 'admin' %}
+            <button @click="openModal = true" class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all">
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                <span>Post New Notice</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-6 p-4 rounded-xl {% if category == 'success' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% else %}bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400{% endif %} text-sm font-medium">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Notice Grid -->
+    <div class="grid grid-cols-12 gap-6">
+        <!-- FEATURED URGENT NOTICE -->
+        {% if urgent %}
+        <div class="col-span-12 lg:col-span-8 bg-white dark:bg-slate-800 rounded-3xl p-8 relative overflow-hidden group border-l-4 border-orange-600 shadow-sm text-slate-800 dark:text-slate-200 border border-transparent dark:border-slate-700 border-l-4 transition-all">
+            <div class="absolute top-0 right-0 p-8 z-10">
+                <span class="px-4 py-1.5 bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-400 text-xs font-bold rounded-full uppercase tracking-wider transition-colors">Urgent</span>
+            </div>
+            <div class="max-w-2xl relative z-10">
+                <div class="flex items-center gap-2 text-orange-600 dark:text-orange-400 mb-4 transition-colors">
+                    <span class="material-symbols-outlined">warning</span>
+                    <span class="text-sm font-bold uppercase tracking-widest font-label">Action Required</span>
+                </div>
+                <h3 class="text-3xl font-headline font-bold text-slate-900 dark:text-white mb-4 leading-tight transition-colors">{{ urgent.title }}</h3>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 transition-colors">{{ urgent.content }}</p>
+                <div class="flex flex-wrap items-center gap-6">
+                    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-500 transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                        <span class="text-sm font-medium transition-colors">Posted: {{ urgent.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    {% if urgent.expiresAt %}
+                    <div class="flex items-center gap-2 text-slate-500 dark:text-slate-500 transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">event_busy</span>
+                        <span class="text-sm font-medium text-rose-500 dark:text-rose-400 font-bold transition-colors">Expires: {{ urgent.expiresAt.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-orange-100 dark:bg-orange-500/10 rounded-full blur-3xl transition-colors"></div>
+        </div>
+        {% endif %}
+
+        <div class="col-span-12 lg:col-span-4 bg-blue-600 text-white rounded-3xl p-8 flex flex-col justify-between overflow-hidden relative group shadow-sm transition-all">
+            <div class="z-10 text-slate-100">
+                <h3 class="text-2xl font-headline font-bold mb-3">Notice Archive</h3>
+                <p class="text-blue-100 text-sm leading-relaxed mb-6">Access all previous announcements and past records.</p>
+            </div>
+            <div class="z-10">
+                <button class="w-full bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-bold py-3 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                    <span>Visit Archive</span>
+                    <span class="material-symbols-outlined text-[20px]">history</span>
+                </button>
+            </div>
+            <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-blue-500/30 rounded-full blur-3xl group-hover:bg-blue-400/40 transition-colors"></div>
+        </div>
+
+        <!-- REGULAR NOTICES -->
+        {% for notice in notices %}
+        <div class="col-span-12 md:col-span-6 lg:col-span-4 bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all group flex flex-col h-full text-slate-800 dark:text-slate-200 border border-transparent dark:border-slate-700 transition-all">
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 rounded-2xl {% if notice.category == 'Event' %}bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400{% else %}bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400{% endif %} flex items-center justify-center transition-colors shadow-sm">
+                    <span class="material-symbols-outlined text-[28px]">
+                        {% if notice.category == 'Event' %}celebration{% else %}campaign{% endif %}
+                    </span>
+                </div>
+                <button class="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                    <span class="material-symbols-outlined">share</span>
+                </button>
+            </div>
+            <div class="mb-2">
+                <span class="text-[10px] font-bold uppercase tracking-widest {% if notice.category == 'Event' %}text-purple-600 dark:text-purple-400{% else %}text-blue-600 dark:text-blue-400{% endif %} font-label transition-colors">{{ notice.category }}</span>
+            </div>
+            <h4 class="text-xl font-headline font-bold text-slate-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ notice.title }}</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-6 flex-grow transition-colors">{{ notice.content }}</p>
+            <div class="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-700 transition-colors">
+                <span class="text-xs font-medium text-slate-400 dark:text-slate-500 transition-colors">{{ notice.created_at.strftime('%b %d, %Y') }}</span>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if not notices and not urgent %}
+        <div class="col-span-12 py-12 text-center">
+            <span class="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-700 mb-2 transition-colors">newspaper</span>
+            <p class="text-slate-400 dark:text-slate-500 font-medium transition-colors">No active notices at the moment.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- POST NOTICE MODAL -->
+    <div x-show="openModal" class="fixed inset-0 z-[100] overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="openModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-slate-900/75 backdrop-blur-sm" @click="openModal = false"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div x-show="openModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-slate-800 rounded-2xl shadow-xl sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-8 border border-transparent dark:border-slate-700">
+                <div class="mb-6 flex justify-between items-center text-slate-900 dark:text-white">
+                    <h3 class="text-2xl font-headline font-bold">Post Global Announcement</h3>
+                    <button @click="openModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <form action="{{ url_for('page.add_notice') }}" method="POST" class="space-y-5 text-slate-800 dark:text-slate-200">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Title</label>
+                        <input type="text" name="title" placeholder="Important: Maintenance This Weekend" required class="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"/>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Category</label>
+                            <select name="category" required class="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all">
+                                <option value="Announcement">Announcement</option>
+                                <option value="Event">Event</option>
+                                <option value="Policy">Policy</option>
+                                <option value="Maintenance">Maintenance</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Level</label>
+                            <select name="isUrgent" required class="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border-none rounded-xl focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all">
+                                <option value="0">Normal</option>
+                                <option value="1">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Content</label>
+                        <textarea name="content" placeholder="Type your announcement content here..." rows="6" required class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500/50 dark:text-white transition-all"></textarea>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="w-full h-12 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:scale-[0.98] transition-all">
+                            Broadcast Announcement
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

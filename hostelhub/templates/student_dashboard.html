@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - HostelHub{% endblock %}
+
+{% block content %}
+<!-- Welcome Section -->
+<header class="mb-10">
+    <h2 class="font-headline text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Welcome back, {{ current_user.name }}</h2>
+    <p class="text-slate-500 dark:text-slate-400 font-body">Here's your status in <span class="text-blue-600 dark:text-blue-400 font-semibold">HostelHub</span> today.</p>
+</header>
+<!-- Metrics Grid -->
+<div class="grid grid-cols-12 gap-6 mb-10">
+    <!-- Active Complaints -->
+    <div class="col-span-12 md:col-span-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent dark:border-slate-700 border-l-4 border-l-orange-600">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-xl">
+                <span class="material-symbols-outlined">report_problem</span>
+            </div>
+        </div>
+        <p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold mb-1">My Active Complaints</p>
+        <h3 class="text-4xl font-headline font-extrabold text-slate-900 dark:text-white">{{ my_complaints_count }}</h3>
+    </div>
+    <!-- Pending Fees -->
+    <div class="col-span-12 md:col-span-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent dark:border-slate-700 border-l-4 border-l-red-600">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl">
+                <span class="material-symbols-outlined">payments</span>
+            </div>
+            {% if pending_fees > 0 %}
+            <span class="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">Action Required</span>
+            {% else %}
+            <span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg">All Cleared</span>
+            {% endif %}
+        </div>
+        <p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold mb-1">Pending Fees</p>
+        <h3 class="text-4xl font-headline font-extrabold text-slate-900 dark:text-white">{{ pending_fees }}</h3>
+    </div>
+</div>
+
+<!-- Bento Grid Main Content -->
+<div class="grid grid-cols-12 gap-6">
+    <!-- Room Info Banner -->
+    <div class="col-span-12 lg:col-span-8 relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 p-8 rounded-xl text-white shadow-xl shadow-blue-500/20">
+        <div class="relative z-10 flex flex-col h-full justify-between">
+            <div>
+                <h4 class="text-2xl font-headline font-bold mb-2">My Room</h4>
+                {% if room_info %}
+                <p class="text-blue-100 max-w-md mb-2">You are assigned to room <strong class="text-white">{{ room_info.roomNumber }}</strong> (Floor {{ room_info.floor }}).</p>
+                <p class="text-blue-100 max-w-md mb-6">Type: {{ room_info.type | capitalize }}</p>
+                {% else %}
+                <p class="text-blue-100 max-w-md mb-6">You have not been assigned a room yet. Please check back later or contact administration.</p>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('page.complaints') }}" class="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold text-sm self-start hover:bg-blue-50 transition-colors active:scale-95 duration-200">
+                Lodge Complaint
+            </a>
+        </div>
+        <span class="material-symbols-outlined absolute -right-8 -bottom-8 text-[12rem] opacity-10 rotate-12">meeting_room</span>
+    </div>
+
+    <!-- Notices Widget -->
+    <div class="col-span-12 lg:col-span-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-transparent dark:border-slate-700 transition-all">
+        <h4 class="font-headline font-bold mb-6 text-slate-900 dark:text-white">Recent Notices</h4>
+        <div class="space-y-4">
+            {% for notice in recent_notices %}
+            <div class="p-4 border border-slate-100 dark:border-slate-700 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">{{ notice.category }}</span>
+                    <span class="text-xs text-slate-400 dark:text-slate-500">{{ notice.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+                <h5 class="font-bold text-sm text-slate-800 dark:text-slate-100">{{ notice.title }}</h5>
+            </div>
+            {% else %}
+            <p class="text-sm text-slate-500 dark:text-slate-400">No recent notices.</p>
+            {% endfor %}
+            <a href="{{ url_for('page.notice') }}" class="block text-center text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mt-4">View All</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

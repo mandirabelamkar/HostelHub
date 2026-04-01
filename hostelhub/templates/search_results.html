@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - HostelHub{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-8">
+    <header class="mb-10">
+        <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-headline transition-colors">Search Results</h2>
+        <p class="text-slate-500 dark:text-slate-400 font-body mt-2 transition-colors">Results for <span class="text-blue-600 dark:text-blue-400 font-bold">"{{ query }}"</span></p>
+    </header>
+
+    {% if not results.students and not results.rooms and not results.notices %}
+    <div class="bg-white dark:bg-slate-800 rounded-[2rem] p-12 text-center border border-slate-100 dark:border-slate-700 shadow-xl transition-all">
+        <div class="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 transition-colors shadow-inner">
+            <span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-4xl transition-colors">search_off</span>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2 transition-colors">No matches found</h3>
+        <p class="text-slate-500 dark:text-slate-500 max-w-sm mx-auto transition-colors">Try searching for different keywords like student names, room numbers, or notice titles.</p>
+    </div>
+    {% else %}
+    
+    <!-- Students Section -->
+    {% if results.students %}
+    <section class="mb-12">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center transition-colors">
+            <span class="material-symbols-outlined mr-2 text-blue-600 dark:text-blue-400">group</span>
+            Students ({{ results.students|length }})
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for student in results.students %}
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md border border-slate-100 dark:border-slate-700 hover:shadow-lg transition-all group">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold transition-colors shadow-sm">
+                        {{ student.name[0] | upper }}
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-white transition-colors">{{ student.name }}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-500 transition-colors">{{ student.enrollmentNumber or 'No Enrollment' }}</p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t border-slate-50 dark:border-slate-700 transition-colors">
+                    <span class="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest transition-colors">Student</span>
+                    <a href="{{ url_for('page.students') }}" class="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline transition-colors flex items-center gap-1 group-hover:translate-x-1 duration-300">
+                        View Details
+                        <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Rooms Section -->
+    {% if results.rooms %}
+    <section class="mb-12">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center transition-colors">
+            <span class="material-symbols-outlined mr-2 text-emerald-600 dark:text-emerald-400 transition-colors">bed</span>
+            Rooms ({{ results.rooms|length }})
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for room in results.rooms %}
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md border border-slate-100 dark:border-slate-700 hover:shadow-lg transition-all group">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-xl transition-colors">Room {{ room.roomNumber }}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-500 transition-colors">Floor {{ room.floor }} • {{ room.type | capitalize }}</p>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase rounded-full transition-colors">Available</span>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t border-slate-50 dark:border-slate-700 transition-colors">
+                    <span class="text-sm font-bold text-slate-900 dark:text-slate-200 transition-colors">${{ room.price }}/mo</span>
+                    <a href="{{ url_for('page.rooms') }}" class="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline transition-colors group-hover:translate-x-1 duration-300">View Room</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Notices Section -->
+    {% if results.notices %}
+    <section class="mb-12">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6 flex items-center transition-colors">
+            <span class="material-symbols-outlined mr-2 text-orange-600 dark:text-orange-400 transition-colors">campaign</span>
+            Notices ({{ results.notices|length }})
+        </h3>
+        <div class="space-y-4">
+            {% for notice in results.notices %}
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md border border-slate-100 dark:border-slate-700 hover:shadow-lg transition-all flex flex-col sm:flex-row justify-between items-center gap-6 group">
+                <div class="flex-1 text-center sm:text-left">
+                    <h4 class="font-bold text-slate-900 dark:text-white transition-colors">{{ notice.title }}</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-1 transition-colors">{{ notice.content }}</p>
+                </div>
+                <a href="{{ url_for('page.notice') }}" class="inline-flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline shrink-0 group-hover:translate-x-1 duration-300">
+                    Read Notice
+                    <span class="material-symbols-outlined text-base">arrow_forward</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% endif %}
+</div>
+{% endblock %}

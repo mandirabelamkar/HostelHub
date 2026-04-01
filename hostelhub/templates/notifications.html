@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - HostelHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <header class="mb-10 flex justify-between items-end">
+        <div>
+            <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-headline transition-colors">Notifications</h2>
+            <p class="text-slate-500 dark:text-slate-400 font-body mt-2 transition-colors">Stay updated with the latest alerts and activities.</p>
+        </div>
+        <button class="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline transition-colors">Mark all as read</button>
+    </header>
+
+    {% if not notifications %}
+    <div class="bg-white dark:bg-slate-800 rounded-[2rem] p-12 text-center border border-slate-100 dark:border-slate-700 shadow-xl transition-all">
+        <div class="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 transition-colors shadow-inner">
+            <span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-4xl transition-colors">notifications_off</span>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2 transition-colors">No notifications yet</h3>
+        <p class="text-slate-500 dark:text-slate-500 max-w-sm mx-auto transition-colors">We'll notify you when something important happens in the portal.</p>
+    </div>
+    {% else %}
+    <div class="space-y-4">
+        {% for notification in notifications %}
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md border border-transparent dark:border-slate-700 border-l-4 {% if notification.type == 'warning' %}border-l-orange-500{% elif notification.type == 'success' %}border-l-emerald-500{% else %}border-l-blue-500{% endif %} flex items-start gap-4 transition-all hover:shadow-lg group">
+            <div class="mt-1 transition-transform group-hover:scale-110 duration-300">
+                <span class="material-symbols-outlined {% if notification.type == 'warning' %}text-orange-500{% elif notification.type == 'success' %}text-emerald-500{% else %}text-blue-500{% endif %} transition-colors">
+                    {% if notification.type == 'warning' %}report_problem{% elif notification.type == 'success' %}check_circle{% else %}info{% endif %}
+                </span>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-start">
+                    <h4 class="font-bold text-slate-900 dark:text-white transition-colors">{{ notification.title }}</h4>
+                    <span class="text-xs text-slate-400 dark:text-slate-500 font-medium transition-colors">{{ notification.created_at.strftime('%b %d, %H:%M') }}</span>
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed transition-colors">{{ notification.message }}</p>
+            </div>
+            {% if not notification.is_read %}
+            <div class="w-2 h-2 bg-blue-600 dark:bg-blue-500 rounded-full mt-2 shadow-sm animate-pulse"></div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

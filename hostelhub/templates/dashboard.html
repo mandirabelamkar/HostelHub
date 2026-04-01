@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - HostelHub{% endblock %}
+
+{% block content %}
+<!-- Welcome Section -->
+<header class="mb-10">
+    <h2 class="font-headline text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Welcome back, {{ current_user.name }}</h2>
+    <p class="text-slate-500 dark:text-slate-400 font-body">Here's what's happening in <span class="text-blue-600 dark:text-blue-400 font-semibold">HostelHub</span> today.</p>
+</header>
+<!-- Metrics Grid (Asymmetric) -->
+<div class="grid grid-cols-12 gap-6 mb-10">
+    <!-- Total Rooms -->
+    <div class="col-span-12 md:col-span-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent dark:border-slate-700">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+                <span class="material-symbols-outlined">bed</span>
+            </div>
+            <span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg">+4 this month</span>
+        </div>
+        <p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold mb-1">Total Rooms</p>
+        <h3 class="text-4xl font-headline font-extrabold text-slate-900 dark:text-white">{{ total_rooms }}</h3>
+    </div>
+    <!-- Active Students -->
+    <div class="col-span-12 md:col-span-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent dark:border-slate-700 border-l-4 border-l-blue-600">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <span class="text-xs font-bold text-slate-400 dark:text-slate-500">92% Occupancy</span>
+        </div>
+        <p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold mb-1">Active Students</p>
+        <h3 class="text-4xl font-headline font-extrabold text-slate-900 dark:text-white">{{ total_students }}</h3>
+    </div>
+    <!-- Active Complaints -->
+    <div class="col-span-12 md:col-span-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-transparent dark:border-slate-700 border-l-4 border-l-orange-600">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-xl">
+                <span class="material-symbols-outlined">report_problem</span>
+            </div>
+            <span class="text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg">High Priority</span>
+        </div>
+        <p class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold mb-1">Active Complaints</p>
+        <h3 class="text-4xl font-headline font-extrabold text-slate-900 dark:text-white">{{ active_complaints }}</h3>
+    </div>
+</div>
+
+<!-- Bento Grid Main Content -->
+<div class="grid grid-cols-12 gap-6">
+    <!-- Room Allocation Banner -->
+    <div class="col-span-12 lg:col-span-8 relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800 p-8 rounded-xl text-white shadow-xl shadow-blue-500/20">
+        <div class="relative z-10 flex flex-col h-full justify-between">
+            <div>
+                <h4 class="text-2xl font-headline font-bold mb-2">New Room Allocation</h4>
+                <p class="text-blue-100 max-w-md mb-6">Process incoming student requests and assign room numbers based on preferred block and capacity.</p>
+            </div>
+            <a href="{{ url_for('page.students') }}" class="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold text-sm self-start hover:bg-blue-50 transition-colors active:scale-95 duration-200">
+                Assign New Student
+            </a>
+
+        </div>
+        <span class="material-symbols-outlined absolute -right-8 -bottom-8 text-[12rem] opacity-10 rotate-12">meeting_room</span>
+    </div>
+
+    <!-- Room Capacity Chart -->
+    <div class="col-span-12 lg:col-span-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-transparent dark:border-slate-700 transition-all">
+        <h4 class="font-headline font-bold mb-6 text-slate-900 dark:text-white">Room Capacity</h4>
+        <div class="space-y-6">
+            <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                    <span>BLOCK A (Premium)</span>
+                    <span>38 / 40</span>
+                </div>
+                <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-600 rounded-full w-[95%]"></div>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                    <span>BLOCK B (Double)</span>
+                    <span>72 / 80</span>
+                </div>
+                <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full w-[90%]"></div>
+                </div>
+            </div>
+            <div>
+                <div class="flex justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                    <span>BLOCK C (Basic)</span>
+                    <span>10 / 120</span>
+                </div>
+                <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-400 rounded-full w-[8%]"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
